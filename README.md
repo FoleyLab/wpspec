@@ -7,6 +7,14 @@ wpspec
 
 A python package for simulating light and matter.
 
+This repository is currently under development.  To do a development install, download this
+repository and type
+
+`pip install -e .`
+
+in the repository directory.
+
+
 ### Copyright
 
 Copyright (c) 2020, Foley Lab

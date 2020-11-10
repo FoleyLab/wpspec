@@ -23,9 +23,9 @@ def canvas(with_attribution=True):
         Compiled string including quote and optional attribution
     """
 
-    quote = "The code is but a canvas to our imagination."
+    quote = "When Zarathustra was thirty years old, he left his home and the lake of his home, and went into the Four Seasons Total Landscaping. There he enjoyed his spirit and solitude, and for ten years did not weary of it."
     if with_attribution:
-        quote += "\n\t- Adapted from Henry David Thoreau"
+        quote += "\n\t- Adapted from Anna Hughes' Twitter"
     return quote
 
 
