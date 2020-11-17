@@ -5,7 +5,61 @@ A python package for simulating light and matter.
 Handles the primary functions
 """
 import numpy as np
+from matplotlib import pyplot as plt
+class Quantum:
+    def __init__(self, args):
+        if 'quantum_state' in args:
+            self.n = args['quantum_state']
+        else:
+            self.n = 1 
+        self.L = 1
+        self.grid_points = 100
+        self.x = np.linspace(0,self.L, self.grid_points)
+        self.Psi = np.zeros(self.grid_points, dtype=complex)
+        self.V = np.ones(self.grid_points)
+        
+    def split_operator(self):
+        self.Psi = self.Psi * self.V
+        return 1
+            
+            
+class pib(Quantum):
+    def __init__(self, args):
+        Quantum.__init__(self,args)
 
+    def eigenfunction(self):
+        """ 
+        function to compute the energy eigenfunction of the pib and
+        store to attribute self.psi
+        
+        Parameters
+        ----------
+        self
+        
+        Returns
+        -------
+        self.psi : float array
+            Energy eigenfunction of the PIB 
+        """
+        self.Psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * self.x / self.L)
+        return 1
+    
+    def plot_eigenfunction(self):
+        plt.plot(self.x, self.Psi, 'red', label='Psi')
+        plt.legend()
+        plt.show()
+    
+    def delta_potential(self):
+        self.V = np.zeros(self.grid_points)
+        self.V[int(self.grid_points/2)] = 1
+        plt.plot(self.x, self.V, 'blue', label='Potential')
+        plt.legend()
+        plt.show()
+        return 1
+        
+        
+
+'''
 def canvas(with_attribution=True):
     """
     Placeholder function to show example docstring (NumPy format)
@@ -27,13 +81,40 @@ def canvas(with_attribution=True):
         quote += "\n\t- Adapted from Anna Hughes' Twitter"
     return quote
 
-
-class pib:
+""" parent class will be the quantum class """
+class quantum:
     def __init__(self, args):
+        if 'propagator' in args:
+            self.method = args['propagator']
+        else:
+            self.method = 'split_operator'
         if 'grid_points' in args:
             self.grid_points = args['grid_points']
         else:
             self.grid_points = 100
+        if 'box_length' in args:
+            self.L = args['box_length']
+        else:
+            self.L = 1
+        
+        print(" Going to propagate using ",self.method)
+        ### get the x-grid
+        self.x = np.linspace(0, self.L, self.grid_points)
+        ## make the potential a parabola centered at L/2
+        self.V = 0.5 * (self.x - self.L/2)**2
+        ## make initial wavefunction a PIB ground-state
+        self.n = 1
+        self.Psi = np.sqrt(2/self.L) * np.sin( self.n * np.pi * self.x / self.L)
+        
+    def split_operator(self):
+        self.Psi = self.Psi * self.V
+        return 1
+        
+
+        
+
+class pib(quantum):
+    def __init__(self, args):
         if 'quantum_state' in args:
             self.n = args['quantum_state']
         else:
@@ -67,7 +148,7 @@ class pib:
         self.psi : float array
             Energy eigenfunction of the PIB 
         """
-        self.psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * self.x / self.L)
+        self.Psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * self.x / self.L)
         return 1
   
     def eigenvalue(self):
@@ -131,7 +212,7 @@ class pir:
             Energy eigenfunction of the PIR 
         """
         ci = 0+1j
-        self.psi = np.sqrt( 1. / (2 * np.pi) ) * np.exp(-ci * self.m * self.theta)
+        self.Psi = np.sqrt( 1. / (2 * np.pi) ) * np.exp(-ci * self.m * self.theta)
         return 1
   
     def eigenvalue(self):
@@ -156,5 +237,5 @@ if __name__ == "__main__":
     # Do something if this file is invoked on its own
     print(canvas())
 
-
+'''
 
