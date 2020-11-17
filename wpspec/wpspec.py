@@ -67,7 +67,7 @@ class pib:
         self.psi : float array
             Energy eigenfunction of the PIB 
         """
-        self.psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * x / self.L)
+        self.psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * self.x / self.L)
         return 1
   
     def eigenvalue(self):
