@@ -5,6 +5,8 @@ A python package for simulating light and matter.
 Handles the primary functions
 """
 import numpy as np
+from scipy.interpolate import InterpolatedUnivariateSpline
+
 from matplotlib import pyplot as plt
 class Quantum:
     def __init__(self, args):
@@ -12,15 +14,90 @@ class Quantum:
             self.n = args['quantum_state']
         else:
             self.n = 1 
-        self.L = 1
+        if 'box_length' in args:
+            self.L = args['box_length']
+        else:
+            self.L = 1
+        if 'time_step' in args:
+            self.dt = args['time_step']
+        else:
+            self.dt = 0.01
+            
         self.grid_points = 100
         self.x = np.linspace(0,self.L, self.grid_points)
         self.Psi = np.zeros(self.grid_points, dtype=complex)
-        self.V = np.ones(self.grid_points)
+        self.Psi_p = np.zeros(self.grid_points, dtype=complex)
+        self.Psi_pp = np.zeros(self.grid_points, dtype=complex)
+        self.V = np.zeros(self.grid_points)
+        self.hbar = 1
+        self.m = 1
         
-    def split_operator(self):
-        self.Psi = self.Psi * self.V
+    #def split_operator(self):
+    #    self.Psi = self.Psi * self.V
+    #    return 1
+    
+    def derivatives(self):
+        """ 
+        function to compute the first and second derivatives of the
+        wavefunction by interpolating with a cubic spline and using
+        the built-in derivative methods of the splines.  The first
+        derivative will be stored in the attribute self.Psi_p
+        and the second derivative will be stored in the attribute self.Psi_pp
+        """
+        ci = 0+1j
+        ### fit the spline to real and imaginary part of wf
+        fr = InterpolatedUnivariateSpline(self.x, np.real(self.Psi))
+        fi = InterpolatedUnivariateSpline(self.x, np.imag(self.Psi))
+        ### get the derivative of the spline
+        fr_p = fr.derivative()
+        fi_p = fi.derivative()
+        ### get the second derivative of the spline
+        fr_pp = fr_p.derivative()
+        fi_pp = fi_p.derivative()
+        ### store the derivative of the spline to self.Psi_p
+        self.Psi_p = fr_p(self.x) + ci * fi_p(self.x)
+        ### sore the second derivative of the spline to self.Psi_pp
+        self.Psi_pp = fr_pp(self.x) + ci * fi_pp(self.x)
         return 1
+    
+    def propagate(self):
+        """ 
+        function to propagate the wavefunction using finite-differences
+        with an Euler update 
+        """
+        ci = 0+1j
+        Psi_old = self.Psi 
+        self.derivatives()
+        ### kinetic energy operator on wavefunction requires second derivative
+        ### store T_hat on Psi to array T_Psi
+        T_Psi = -0.5 * self.Psi_pp
+        ### store V_hat on Psi to array V_Psi
+        #V_Psi = self.V * self.Psi
+        ### Store -i/hbar *  H_hat on Psi to array Psi_dot
+        k1 = -ci * T_Psi * self.dt
+        self.Psi = Psi_old + k1/2
+        
+        self.derivatives()
+        T_Psi = -0.5 * self.Psi_pp       
+        k2 = -ci * T_Psi * self.dt
+        
+        self.Psi = Psi_old + k2/2
+        
+        self.derivatives()
+        T_Psi = -0.5 * self.Psi_pp
+        k3 = -ci * T_Psi * self.dt
+        
+        self.Psi = Psi_old + k3
+        
+        self.derivatives()
+        T_Psi = -0.5 * self.Psi_pp
+        k4 = -ci * T_Psi * self.dt
+        
+        self.Psi = Psi_old + 1/6 * (k1 + 2*k2 + 2*k3 + k4)
+        return 1
+        
+    
+    
             
             
 class pib(Quantum):
