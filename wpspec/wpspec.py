@@ -17,18 +17,57 @@ class Quantum:
         if 'box_length' in args:
             self.L = args['box_length']
         else:
-            self.L = 1
+            self.L = 5.0
         if 'time_step' in args:
             self.dt = args['time_step']
         else:
-            self.dt = 0.1
+            self.dt = 0.05
+        if 'system' in args:
+            self.system = args['system']
+        else:
+            self.system = 'harmonic'
             
-        self.grid_points = 100
-        self.x = np.linspace(0,self.L, self.grid_points)
-        self.Psi = np.zeros(self.grid_points, dtype=complex)
-        self.Psi_p = np.zeros(self.grid_points, dtype=complex)
-        self.Psi_pp = np.zeros(self.grid_points, dtype=complex)
-        self.V = np.zeros(self.grid_points)
+        if 'grid_points' in args:
+            self.grid_points =args['grid_points']
+        else:
+            self.grid_points = 256
+        if 'v_offset' in args:
+            self.voffset = args['v_offset']
+        else:
+            self.voffset = 0.
+        if 'wfc_offset' in args:
+            self.wfc_offset = args['wfc_offset']
+        else:
+            self.wfc_offset = 0.
+            
+        
+            
+
+        if self.system == 'harmonic':
+            self.dx = 2 * self.L / self.grid_points
+            res = self.grid_points 
+            self.x = np.arange(-self.L + self.L / self.grid_points, self.L, self.dx)
+            self.dk = np.pi / self.L
+            self.k = np.concatenate((np.arange(0, res / 2),
+                                 np.arange(-res / 2, 0))) * self.dk
+            self.V = 0.5 * (self.x - self.voffset) ** 2
+            self.Psi = np.exp(-((self.x - self.wfc_offset) ** 2) / 2, dtype=complex)
+            self.K = np.exp(-0.5 * (self.k ** 2) * self.dt * 1j)
+            self.R = np.exp(-0.5 * self.V * self.dt * 1j)
+        elif self.system == 'pib':
+            self.dx = self.L / self.grid_points
+            res = self.grid_points 
+            self.x = np.arrange(0 + self.L / res, self.L, self.dx)
+            self.dk = np.pi / (2 * self.L )
+            self.k = np.concatenate((np.arange(0, res / 2),
+                                 np.arange(-res / 2, 0))) * self.dk
+            self.V = np.zeros_like(self.x)
+            self.Psi = np.sqrt(2/self.L) * np.sin((np.pi * self.x/self.L), dtype=complex)
+            self.K = np.exp(-0.5 * (self.k ** 2) * self.dt * 1j)
+            self.R = np.exp(-0.5 * self.V * self.dt * 1j)
+
+
+
         self.hbar = 1
         self.m = 1
         
@@ -60,6 +99,46 @@ class Quantum:
         self.Psi_pp = fr_pp(self.x) + ci * fi_pp(self.x)
         return 1
     
+    def split_op(self):
+        
+
+        # Half-step in real space
+        self.Psi *= self.R
+
+        # FFT to momentum space
+        self.Psi = np.fft.fft(self.Psi)
+
+        # Full step in momentum space
+        self.Psi *= self.K
+
+        # iFFT back
+        self.Psi = np.fft.ifft(self.Psi)
+
+        # Final half-step in real space
+        self.Psi *= self.R
+
+        # Density for plotting and potential
+        #density = np.abs(self.Psi) ** 2
+
+        # Renormalizing for imaginary time
+        '''
+        if par.im_time:
+            renorm_factor = sum(density) * par.dx
+            opr.wfc /= sqrt(renorm_factor)
+
+        # Outputting data to file. Plotting can also be done in a
+        # similar way. This is set to output exactly 100 files, no
+        # matter how many timesteps were specified.
+        if i % (par.timesteps // 100) == 0:
+            filename = "output{}.dat".format(str(i).rjust(5, str(0)))
+            with open(filename, "w") as outfile:
+                # Outputting for gnuplot. Any plotter will do.
+                for j in range(len(density)):
+                    template = "{}\t{}\t{}\n".format
+                    line = template(par.x[j], density[j].real, opr.V[j].real)
+                    outfile.write(line)
+            print("Outputting step: ", i + 1)
+        '''
     def propagate(self):
         """ 
         function to propagate the wavefunction using finite-differences
