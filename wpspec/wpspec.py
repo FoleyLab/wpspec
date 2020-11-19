@@ -67,30 +67,31 @@ class Quantum:
         """
         ci = 0+1j
         Psi_old = self.Psi 
-        self.derivatives()
+        #self.derivatives()
         ### kinetic energy operator on wavefunction requires second derivative
         ### store T_hat on Psi to array T_Psi
-        T_Psi = -0.5 * self.Psi_pp
+        T_Psi = self.E * self.Psi
         ### store V_hat on Psi to array V_Psi
         #V_Psi = self.V * self.Psi
         ### Store -i/hbar *  H_hat on Psi to array Psi_dot
         k1 = -ci * T_Psi * self.dt
         self.Psi = Psi_old + k1/2
         
-        self.derivatives()
-        T_Psi = -0.5 * self.Psi_pp       
+        #self.derivatives()
+        T_Psi = self.E * self.Psi       
         k2 = -ci * T_Psi * self.dt
         
         self.Psi = Psi_old + k2/2
         
-        self.derivatives()
-        T_Psi = -0.5 * self.Psi_pp
+        #self.derivatives()
+        T_Psi = self.E * self.Psi 
         k3 = -ci * T_Psi * self.dt
         
         self.Psi = Psi_old + k3
         
-        self.derivatives()
-        T_Psi = -0.5 * self.Psi_pp
+        #self.derivatives()
+        #T_Psi = -0.5 * self.Psi_pp
+        T_Psi = self.E *  self.Psi 
         k4 = -ci * T_Psi * self.dt
         
         self.Psi = Psi_old + 1/6 * (k1 + 2*k2 + 2*k3 + k4)
@@ -125,6 +126,22 @@ class pib(Quantum):
         plt.plot(self.x, self.Psi, 'red', label='Psi')
         plt.legend()
         plt.show()
+        
+    def eigenvalue(self):
+        """ 
+        function to compute the energy eigenvalue of the pib and
+        store to attribute self.E
+        
+        Parameters
+        ----------
+        self
+        
+        Returns
+        -------
+        self.E : float
+            Energy eigenvalue of the PIB 
+        """
+        self.E = self.n ** 2 * np.pi **2 * self.hbar ** 2  / (2 * self.m * self.L **2) 
     
     def delta_potential(self):
         self.V = np.zeros(self.grid_points)
