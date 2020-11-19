@@ -21,9 +21,9 @@ class Quantum:
         if 'time_step' in args:
             self.dt = args['time_step']
         else:
-            self.dt = 0.01
+            self.dt = 0.1
             
-        self.grid_points = 50
+        self.grid_points = 100
         self.x = np.linspace(0,self.L, self.grid_points)
         self.Psi = np.zeros(self.grid_points, dtype=complex)
         self.Psi_p = np.zeros(self.grid_points, dtype=complex)
@@ -67,11 +67,11 @@ class Quantum:
         """
         ci = 0+1j
         Psi_old = self.Psi 
-        self.derivatives()
+        #self.derivatives()
         ### kinetic energy operator on wavefunction requires second derivative
         ### store T_hat on Psi to array T_Psi
-        #T_Psi = self.E * self.Psi
-        T_Psi = -0.5 * self.Psi_pp
+        T_Psi = self.E * self.Psi
+        #T_Psi = -0.5 * self.Psi_pp
         k1 = -ci * T_Psi * self.dt
         self.Psi = Psi_old + k1
         
