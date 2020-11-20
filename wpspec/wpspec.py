@@ -57,7 +57,7 @@ class Quantum:
         elif self.system == 'pib':
             self.dx = self.L / self.grid_points
             res = self.grid_points 
-            self.x = np.arrange(0 + self.L / res, self.L, self.dx)
+            self.x = np.arange(0 , self.L, self.dx)
             self.dk = np.pi / (2 * self.L )
             self.k = np.concatenate((np.arange(0, res / 2),
                                  np.arange(-res / 2, 0))) * self.dk
