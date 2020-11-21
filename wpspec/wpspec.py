@@ -58,22 +58,24 @@ class Quantum:
             self.dx = self.L / self.grid_points
             res = self.grid_points 
             self.x = np.arange(0 , self.L, self.dx)
-            self.dk = np.pi / (2 * self.L )
+            self.dk = 2 * np.pi / (res * self.dx)
             self.k = np.concatenate((np.arange(0, res / 2),
                                  np.arange(-res / 2, 0))) * self.dk
-            self.V = np.zeros_like(self.x)
+            
+            #self.V = np.zeros_like(self.x)
+            self.V = 0.5 * (self.x - self.voffset) ** 2
             self.Psi = np.sqrt(2/self.L) * np.sin((np.pi * self.x/self.L), dtype=complex)
             self.K = np.exp(-0.5 * (self.k ** 2) * self.dt * 1j)
             self.R = np.exp(-0.5 * self.V * self.dt * 1j)
 
 
 
+
         self.hbar = 1
         self.m = 1
         
-    #def split_operator(self):
-    #    self.Psi = self.Psi * self.V
-    #    return 1
+    def build_operator(self):
+        self.R = np.exp(-0.5 * self.V * self.dt * 1j)
     
     def derivatives(self):
         """ 
