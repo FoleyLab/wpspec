@@ -39,6 +39,7 @@ class Quantum:
             self.wfc_offset = args['wfc_offset']
         else:
             self.wfc_offset = 0.
+        
             
         
             
@@ -55,15 +56,15 @@ class Quantum:
             self.K = np.exp(-0.5 * (self.k ** 2) * self.dt * 1j)
             self.R = np.exp(-0.5 * self.V * self.dt * 1j)
         elif self.system == 'pib':
-            self.dx = self.L / self.grid_points
+            self.x = np.linspace(0, self.L, self.grid_points)
+            self.dx = self.x[1]-self.x[0]
             res = self.grid_points 
-            self.x = np.arange(0 , self.L, self.dx)
             self.dk = 2 * np.pi / (res * self.dx)
             self.k = np.concatenate((np.arange(0, res / 2),
                                  np.arange(-res / 2, 0))) * self.dk
             
-            #self.V = np.zeros_like(self.x)
-            self.V = 0.5 * (self.x - self.voffset) ** 2
+            self.V = np.zeros_like(self.x)
+            #self.V = 0.5 * (self.x - self.voffset) ** 2
             self.Psi = np.sqrt(2/self.L) * np.sin((np.pi * self.x/self.L), dtype=complex)
             self.K = np.exp(-0.5 * (self.k ** 2) * self.dt * 1j)
             self.R = np.exp(-0.5 * self.V * self.dt * 1j)
@@ -73,6 +74,7 @@ class Quantum:
 
         self.hbar = 1
         self.m = 1
+        self.T_matrix = np.zeros((self.grid_points, self.grid_points))
         
     def build_operator(self):
         self.R = np.exp(-0.5 * self.V * self.dt * 1j)
@@ -141,7 +143,24 @@ class Quantum:
                     outfile.write(line)
             print("Outputting step: ", i + 1)
         '''
-    def propagate(self):
+    def finite_difference_T_matrix(self):
+        N = self.grid_points
+        t0 = self.hbar ** 2 /(2 * self.m * self.dx)
+        for i in range(0,N):
+            self.T_matrix[i,i] = 2*t0
+            if i<N-1 and i>0:
+                self.T_matrix[i,i+1] = -t0
+                self.T_matrix[i,i-1] = -t0
+            elif i<N-1:
+                self.T_matrix[i,i+1] = -t0
+            elif i>0:
+                self.T_matrix[i,i-1] = -t0
+        print(self.T_matrix)
+        return 1
+                
+        
+        
+    def finite_differences(self):
         """ 
         function to propagate the wavefunction using finite-differences
         with an Euler update 
