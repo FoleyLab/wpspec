@@ -144,8 +144,10 @@ class Quantum:
             print("Outputting step: ", i + 1)
         '''
     def finite_difference_T_matrix(self):
+        ''' check out: http://sites.science.oregonstate.edu/~roundyd/COURSES/ph366/free-particle.html
+        '''
         N = self.grid_points
-        t0 = self.hbar ** 2 /(2 * self.m * self.dx)
+        t0 = self.hbar ** 2 /(2 * self.m * self.dx ** 2)
         for i in range(0,N):
             self.T_matrix[i,i] = 2*t0
             if i<N-1 and i>0:
