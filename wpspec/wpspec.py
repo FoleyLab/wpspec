@@ -75,7 +75,8 @@ class Quantum:
         self.hbar = 1
         self.m = 1
         self.T_matrix = np.zeros((self.grid_points, self.grid_points))
-        
+        self.V_matrix = np.zeros((self.grid_points, self.grid_points))
+        self.H_matrix = np.zeros((self.grid_points, self.grid_points))        
     def build_operator(self):
         self.R = np.exp(-0.5 * self.V * self.dt * 1j)
     
@@ -157,7 +158,16 @@ class Quantum:
                 self.T_matrix[i,i+1] = -t0
             elif i>0:
                 self.T_matrix[i,i-1] = -t0
-        print(self.T_matrix)
+        return 1
+    
+    def finite_difference_V_matrix(self):
+        N = self.grid_points
+        for i in range(0,N):
+            self.V_matrix[i,i] = self.V[i]
+        return 1
+    
+    def finite_difference_H_matrix(self):
+        self.H_matrix = self.T_matrix + self.V_matrix
         return 1
                 
         
