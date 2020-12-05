@@ -6,8 +6,11 @@ Handles the primary functions
 """
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline
-
 from matplotlib import pyplot as plt
+import math
+from numpy.polynomial.hermite import *
+
+
 class Quantum:
     def __init__(self, args):
         if 'quantum_state' in args:
@@ -74,6 +77,8 @@ class Quantum:
 
         self.hbar = 1
         self.m = 1
+        self.mu = 1
+        self.k = 1
         self.T_matrix = np.zeros((self.grid_points, self.grid_points))
         self.V_matrix = np.zeros((self.grid_points, self.grid_points))
         self.H_matrix = np.zeros((self.grid_points, self.grid_points))        
@@ -170,54 +175,36 @@ class Quantum:
         self.H_matrix = self.T_matrix + self.V_matrix
         return 1
                 
+
+
+class harmonic(Quantum):
+    def __init__(self, args):
+        Quantum.__init__(self,args)
         
+    def eigenfunction(self, state):
+            
+        w = np.sqrt(self.k/self.mu)
+        psi = np.zeros_like(self.x)
+            
+        herm_coeff = []
+            
+        for i in range(state):
+            herm_coeff.append(0)
+        herm_coeff.append(1)
+            
+        for i in range(0,len(self.x)):
+            psi[i] = math.exp(-self.mu*w*self.x[i]**2/(2*self.hbar)) * hermval((self.mu*w/self.hbar)**0.5 * self.x[i], herm_coeff)
+        psi = np.multiply(psi, 1 / (math.pow(2, state) * math.factorial(state))**0.5 * (self.mu*w/(np.pi*self.hbar))**0.25)
         
-    def finite_differences(self):
-        """ 
-        function to propagate the wavefunction using finite-differences
-        with an Euler update 
-        """
-        ci = 0+1j
-        Psi_old = self.Psi 
-        #self.derivatives()
-        ### kinetic energy operator on wavefunction requires second derivative
-        ### store T_hat on Psi to array T_Psi
-        T_Psi = self.E * self.Psi
-        #T_Psi = -0.5 * self.Psi_pp
-        k1 = -ci * T_Psi * self.dt
-        self.Psi = Psi_old + k1
-        
-        '''
-        ### store V_hat on Psi to array V_Psi
-        #V_Psi = self.V * self.Psi
-        ### Store -i/hbar *  H_hat on Psi to array Psi_dot
-        k1 = -ci * T_Psi * self.dt
-        self.Psi = Psi_old + k1/2
-        
-        self.derivatives()
-        #T_Psi = self.E * self.Psi       
-        T_Psi = -0.5 * self.Psi_pp
-        k2 = -ci * T_Psi * self.dt
-        
-        self.Psi = Psi_old + k2/2
-        
-        self.derivatives()
-        T_Psi = -0.5 * self.Psi_pp
-        #T_Psi = self.E * self.Psi 
-        k3 = -ci * T_Psi * self.dt
-        
-        self.Psi = Psi_old + k3
-        
-        self.derivatives()
-        T_Psi = -0.5 * self.Psi_pp
-        #T_Psi = self.E *  self.Psi 
-        k4 = -ci * T_Psi * self.dt
-        
-        self.Psi = Psi_old + 1/6 * (k1 + 2*k2 + 2*k3 + k4)
-        '''
-        return 1
-        
+        return psi
     
+    def eigenvalue(self, state):
+        return np.sqrt(self.k/self.mu) * (state+(1./2))
+    
+    def time_factor(self, state, t):
+        ci = 0+1
+        En = eigenvalue(state)
+        return np.exp(-ci*En*t) 
     
             
             
@@ -239,8 +226,8 @@ class pib(Quantum):
         self.psi : float array
             Energy eigenfunction of the PIB 
         """
-        self.Psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * self.x / self.L)
-        return 1
+        psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * self.x / self.L)
+        return psi
     
     def plot_eigenfunction(self):
         plt.plot(self.x, self.Psi, 'red', label='Psi')
@@ -261,7 +248,8 @@ class pib(Quantum):
         self.E : float
             Energy eigenvalue of the PIB 
         """
-        self.E = self.n ** 2 * np.pi **2 * self.hbar ** 2  / (2 * self.m * self.L **2) 
+        E = self.n ** 2 * np.pi **2 * self.hbar ** 2  / (2 * self.m * self.L **2)
+        return E
     
     def delta_potential(self):
         self.V = np.zeros(self.grid_points)
