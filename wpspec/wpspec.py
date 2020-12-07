@@ -13,10 +13,10 @@ from numpy.polynomial.hermite import *
 
 class Quantum:
     def __init__(self, args):
-        if 'quantum_state' in args:
-            self.n = args['quantum_state']
-        else:
-            self.n = 1 
+        #if 'quantum_state' in args:
+        #    self.n = args['quantum_state']
+        #else:
+        #    self.n = 1 
         if 'box_length' in args:
             self.L = args['box_length']
         else:
@@ -43,9 +43,6 @@ class Quantum:
         else:
             self.wfc_offset = 0.
         
-            
-        
-            
 
         if self.system == 'harmonic':
             ''' create harmonic object '''
@@ -83,7 +80,8 @@ class Quantum:
         self.k = 1
         self.T_matrix = np.zeros((self.grid_points, self.grid_points))
         self.V_matrix = np.zeros((self.grid_points, self.grid_points))
-        self.H_matrix = np.zeros((self.grid_points, self.grid_points))        
+        self.H_matrix = np.zeros((self.grid_points, self.grid_points))     
+        
     def build_operator(self):
         self.R = np.exp(-0.5 * self.V * self.dt * 1j)
     
@@ -178,17 +176,26 @@ class Quantum:
         return 1
     
     ### use rectangle rule to integrate a function!
-    def integrate(x, f_of_x):
+    def integrate(self, f_of_x):
         ''' rectangle rule integral method '''
         # get the width of each rectangle!
-        w = x[1]-x[0]
+        w = self.x[1]-self.x[0]
         # initiate integrand
         integral = 0
-        for i in range(1,len(x)):
+        for i in range(1,len(self.x)):
             h = f_of_x[i]
             A = w * h
             integral = integral + A
         return integral
+    
+    def compute_coefficient(self, basis_state):
+        ''' Determine the expansion coefficient for 
+            pib eigenfunction n in wavefunction Psi 
+        '''
+        # product of PIB state _state_ and wavefunction
+        integrand = np.conj(basis_state) * self.Psi
+        ### get coefficient c_n from the integral of integrand
+        return self.integrate(integrand)
                 
 
 
@@ -226,8 +233,10 @@ class harmonic(Quantum):
 class pib(Quantum):
     def __init__(self, args):
         Quantum.__init__(self,args)
+        self.cn = np.zeros(100)
+        self.n = np.linspace(1,100,100)
 
-    def eigenfunction(self):
+    def eigenfunction(self, n):
         """ 
         function to compute the energy eigenfunction of the pib and
         store to attribute self.psi
@@ -241,15 +250,15 @@ class pib(Quantum):
         self.psi : float array
             Energy eigenfunction of the PIB 
         """
-        psi = np.sqrt( 2. / self.L ) * np.sin(self.n * np.pi * self.x / self.L)
+        psi = np.sqrt( 2. / self.L ) * np.sin(n * np.pi * self.x / self.L)
         return psi
     
-    def plot_eigenfunction(self):
+    def plot_wavefunction(self):
         plt.plot(self.x, self.Psi, 'red', label='Psi')
         plt.legend()
         plt.show()
         
-    def eigenvalue(self):
+    def eigenvalue(self, n):
         """ 
         function to compute the energy eigenvalue of the pib and
         store to attribute self.E
@@ -263,7 +272,7 @@ class pib(Quantum):
         self.E : float
             Energy eigenvalue of the PIB 
         """
-        E = self.n ** 2 * np.pi **2 * self.hbar ** 2  / (2 * self.m * self.L **2)
+        E = n ** 2 * np.pi **2 * self.hbar ** 2  / (2 * self.m * self.L **2)
         return E
     
     def delta_potential(self):
@@ -273,6 +282,15 @@ class pib(Quantum):
         plt.legend()
         plt.show()
         return 1
+    
+    def expand_pib(self):
+        ''' Determine the expansion coefficient for 
+            pib eigenfunction n in wavefunction Psi 
+        '''
+        for i in range(0,len(self.n)):
+            basis_state = self.eigenfunction(self.n[i])
+            self.cn[i] = self.compute_coefficient(basis_state)
+
         
         
 
