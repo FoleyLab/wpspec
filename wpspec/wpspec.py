@@ -48,6 +48,7 @@ class Quantum:
             
 
         if self.system == 'harmonic':
+            ''' create harmonic object '''
             self.dx = 2 * self.L / self.grid_points
             res = self.grid_points 
             self.x = np.arange(-self.L + self.L / self.grid_points, self.L, self.dx)
@@ -56,6 +57,7 @@ class Quantum:
                                  np.arange(-res / 2, 0))) * self.dk
             self.V = 0.5 * (self.x - self.voffset) ** 2
             self.Psi = np.exp(-((self.x - self.wfc_offset) ** 2) / 2, dtype=complex)
+            #self.Psi = complex(model.eigenfunction(2))
             self.K = np.exp(-0.5 * (self.k ** 2) * self.dt * 1j)
             self.R = np.exp(-0.5 * self.V * self.dt * 1j)
         elif self.system == 'pib':
@@ -174,6 +176,19 @@ class Quantum:
     def finite_difference_H_matrix(self):
         self.H_matrix = self.T_matrix + self.V_matrix
         return 1
+    
+    ### use rectangle rule to integrate a function!
+    def integrate(x, f_of_x):
+        ''' rectangle rule integral method '''
+        # get the width of each rectangle!
+        w = x[1]-x[0]
+        # initiate integrand
+        integral = 0
+        for i in range(1,len(x)):
+            h = f_of_x[i]
+            A = w * h
+            integral = integral + A
+        return integral
                 
 
 
