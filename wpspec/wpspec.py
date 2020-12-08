@@ -13,10 +13,7 @@ from numpy.polynomial.hermite import *
 
 class Quantum:
     def __init__(self, args):
-        #if 'quantum_state' in args:
-        #    self.n = args['quantum_state']
-        #else:
-        #    self.n = 1 
+
         if 'box_length' in args:
             self.L = args['box_length']
         else:
@@ -80,7 +77,13 @@ class Quantum:
         self.k = 1
         self.T_matrix = np.zeros((self.grid_points, self.grid_points))
         self.V_matrix = np.zeros((self.grid_points, self.grid_points))
-        self.H_matrix = np.zeros((self.grid_points, self.grid_points))     
+        self.H_matrix = np.zeros((self.grid_points, self.grid_points)) 
+        
+        # arrays for basis set expansion
+        self.cn = np.zeros(100)
+        self.n = np.linspace(1,100,100)
+        self.phi = np.zeros((len(self.x), 100))
+        self.t_fac = np.zeros(100, dtype=complex)
         
     def build_operator(self):
         self.R = np.exp(-0.5 * self.V * self.dt * 1j)
@@ -196,7 +199,13 @@ class Quantum:
         integrand = np.conj(basis_state) * self.Psi
         ### get coefficient c_n from the integral of integrand
         return self.integrate(integrand)
-                
+    
+    def expand_wavefunction_t(self):
+        self.Psi = self.cn[0] * self.phi[0,:] * self.t_fac[0]
+        for i in range(1, len(self.n)):
+            self.Psi += self.cn[i] * self.phi[:,i] * self.t_fac[i]
+        return 1
+    
 
 
 class harmonic(Quantum):
@@ -224,8 +233,8 @@ class harmonic(Quantum):
         return np.sqrt(self.k/self.mu) * (state+(1./2))
     
     def time_factor(self, state, t):
-        ci = 0+1
-        En = eigenvalue(state)
+        ci = 0+1j
+        En = self.eigenvalue(state)
         return np.exp(-ci*En*t) 
     
             
@@ -233,8 +242,7 @@ class harmonic(Quantum):
 class pib(Quantum):
     def __init__(self, args):
         Quantum.__init__(self,args)
-        self.cn = np.zeros(100)
-        self.n = np.linspace(1,100,100)
+        
 
     def eigenfunction(self, n):
         """ 
@@ -275,6 +283,12 @@ class pib(Quantum):
         E = n ** 2 * np.pi **2 * self.hbar ** 2  / (2 * self.m * self.L **2)
         return E
     
+    def time_factor(self, state, t):
+        ci = 0+1j
+        En = self.eigenvalue(state)
+        return np.exp(-ci*En*t) 
+        
+    
     def delta_potential(self):
         self.V = np.zeros(self.grid_points)
         self.V[int(self.grid_points/2)] = 1
@@ -288,8 +302,10 @@ class pib(Quantum):
             pib eigenfunction n in wavefunction Psi 
         '''
         for i in range(0,len(self.n)):
-            basis_state = self.eigenfunction(self.n[i])
-            self.cn[i] = self.compute_coefficient(basis_state)
+            self.phi[:,i] = self.eigenfunction(self.n[i])
+            self.cn[i] = self.compute_coefficient(self.phi[:,i])
+    
+    
 
         
         
