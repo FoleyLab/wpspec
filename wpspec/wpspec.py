@@ -304,6 +304,7 @@ class pib(Quantum):
         for i in range(0,len(self.n)):
             self.phi[:,i] = self.eigenfunction(self.n[i])
             self.cn[i] = self.compute_coefficient(self.phi[:,i])
+        print("Oh hi!")
     
     
 
