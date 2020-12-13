@@ -9,6 +9,8 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from matplotlib import pyplot as plt
 import math
 from numpy.polynomial.hermite import *
+from matplotlib import animation, rc
+from IPython.display import HTML
 
 
 class Quantum:
@@ -205,6 +207,24 @@ class Quantum:
         for i in range(1, len(self.n)):
             self.Psi += self.cn[i] * self.phi[:,i] * self.t_fac[i]
         return 1
+    
+    # First set up the figure, the axis, and the plot element we want to animate
+    def plot_init(self):
+    fig, ax = plt.subplots()Adaptedplt.close()
+
+
+### parameters for plot
+ax.set_xlim((-wf.L, wf.L))
+ax.set_ylim((-1, 2))
+
+line, = ax.plot([], [], lw=2)
+line1, = ax.plot([], [], lw=2)
+
+# initialization function: plot the background of each frame
+def init():
+    line.set_data([], [])
+    line1.set_data([], [])
+    return (line, line1,)
     
 
 
