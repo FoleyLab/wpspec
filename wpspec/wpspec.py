@@ -221,9 +221,9 @@ class harmonic(Quantum):
             
         herm_coeff = []
             
-        for i in range(state):
-            herm_coeff.append(0)
-        herm_coeff.append(1)
+        for i in range(int(state)):
+            herm_coeff.append(int(0))
+        herm_coeff.append(int(1))
             
         for i in range(0,len(self.x)):
             psi[i] = math.exp(-self.mu*w*self.x[i]**2/(2*self.hbar)) * hermval((self.mu*w/self.hbar)**0.5 * self.x[i], herm_coeff)
@@ -234,10 +234,20 @@ class harmonic(Quantum):
     def eigenvalue(self, state):
         return np.sqrt(self.k/self.mu) * (state+(1./2))
     
-    def time_factor(self, state, t):
+    def time_factor(self, time_step):
+        t = time_step * self.dt
         ci = 0+1j
-        En = self.eigenvalue(state)
-        return np.exp(-ci*En*t) 
+        En = self.eigenvalue(self.n)
+        self.t_fac = np.exp(-ci*En*t) 
+    
+    def expand_harmonic(self):
+        ''' Determine the expansion coefficient for 
+            harmonic eigenfunction n in wavefunction Psi 
+        '''
+        for i in range(0,len(self.n)):
+            self.phi[:,i] = self.eigenfunction(self.n[i])
+            self.cn[i] = self.compute_coefficient(self.phi[:,i])
+        
     
             
             
@@ -307,7 +317,7 @@ class pib(Quantum):
         for i in range(0,len(self.n)):
             self.phi[:,i] = self.eigenfunction(self.n[i])
             self.cn[i] = self.compute_coefficient(self.phi[:,i])
-        print("Oh hi!")
+        
     
     
 
