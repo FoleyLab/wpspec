@@ -319,7 +319,83 @@ class pib(Quantum):
             self.cn[i] = self.compute_coefficient(self.phi[:,i])
         
     
+class rigid_rotor(Quantum):
+    def __init__(self, args):
+        Quantum.__init__(self,args)
+        
+    self.R = 1
+    self.I = self.m * self.R **2
     
+    ### quantum numbers
+    self.n = np.linspace(-50,50,101)
+    self.cn = np.zeros(len(self.n),dtype=complex)
+    self.t_fac = np.zeros(len(self.n),dtype=complex)
+    self.x = np.linspace(0, np.pi * 2, self.grid_points)
+    
+
+    def eigenfunction(self, n):
+        """ 
+        function to compute the energy eigenfunction of the pib and
+        store to attribute self.psi
+        
+        Parameters
+        ----------
+        self
+        
+        Returns
+        -------
+        self.psi : float array
+            Energy eigenfunction of the PIB 
+        """
+        ci = 0+1j
+        psi = 1/np.sqrt(2*np.pi) * np.exp(ci * n * self.x)
+        return psi
+    
+    def plot_wavefunction(self):
+        plt.plot(self.x, self.Psi, 'red', label='Psi')
+        plt.legend()
+        plt.show()
+        
+    def eigenvalue(self, n):
+        """ 
+        function to compute the energy eigenvalue of the pib and
+        store to attribute self.E
+        
+        Parameters
+        ----------
+        self
+        
+        Returns
+        -------
+        self.E : float
+            Energy eigenvalue of the PIB 
+        """
+        E = self.hbar **2 / (2 * self.I) * n ** 2
+        return E
+    
+    def time_factor(self, time_step):
+        t = time_step * self.dt
+        ci = 0+1j
+        En = self.eigenvalue(self.n)
+        self.t_fac = np.exp(-ci*En*t) 
+        
+    
+    def delta_potential(self):
+        self.V = np.zeros(self.grid_points)
+        self.V[int(self.grid_points/2)] = 1
+        plt.plot(self.x, self.V, 'blue', label='Potential')
+        plt.legend()
+        plt.show()
+        return 1
+    
+    def expand_pir(self):
+        ''' Determine the expansion coefficient for 
+            pib eigenfunction n in wavefunction Psi 
+        '''
+        for i in range(0,len(self.n)):
+            self.phi[:,i] = self.eigenfunction(self.n[i])
+            self.cn[i] = self.compute_coefficient(self.phi[:,i])
+        
 
         
         
