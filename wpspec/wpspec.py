@@ -85,8 +85,19 @@ class Quantum:
         self.phi = np.zeros((len(self.x), 100))
         self.t_fac = np.zeros(100, dtype=complex)
         
+        self.morse_D = 1
+        self.morse_a = 1.5
+        self.morse_re = 0
+    
+
+        
     def build_operator(self):
         self.R = np.exp(-0.5 * self.V * self.dt * 1j)
+        
+    def morse_potential(self):
+        ''' method to generate the Morse potential and store to self.V
+        '''
+        self.V = self.morse_D * (1 - np.exp(-self.morse_a * (self.x - self.morse_a))) ** 2
     
     def derivatives(self):
         """ 
