@@ -98,6 +98,34 @@ class Quantum:
         ''' method to generate the Morse potential and store to self.V
         '''
         self.V = self.morse_D * (1 - np.exp(-self.morse_a * (self.x - self.morse_a))) ** 2
+        
+    def periodic_potential(self):
+        ''' Creates a periodic potential perturbing the particle-in-a-box
+            system to mimic screened atomic attraction in cyanine dye
+            systems as desribed in Figure 2 and Eq. 4 here:
+            http://web.ist.utl.pt/berberan/PQF/JCE%202007%20Autschbach.pdf
+        
+            a = 2.49e-10
+            # b constant in SI units related to the length of the terminal moities in 
+            # the cyanine dyes
+            b = 5.69e-10
+
+           # create an array of L values, where L is the length of the box,
+           # for each distinct dye defined by the k array
+           L = a * (k + 1) + b
+           m = 2*k + 5
+           (L - b)/a - 1 = k
+           
+       '''
+       # constant for the average -CH=CH- unit length
+       a = 2.49e-10
+       # constant for the terminal -N moity length
+       b = 5.69e-10
+       # number of -CH=CH- units
+       k = (self.L - b)/a - 1
+       # integer for number of atom sites
+       2 * np.floor(k) + 5
+       self.V = # needs completion!
     
     def derivatives(self):
         """ 
