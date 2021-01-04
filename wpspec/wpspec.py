@@ -116,16 +116,24 @@ class Quantum:
            m = 2*k + 5
            (L - b)/a - 1 = k
            
-       '''
-       # constant for the average -CH=CH- unit length
-       a = 2.49e-10
-       # constant for the terminal -N moity length
-       b = 5.69e-10
-       # number of -CH=CH- units
-       k = (self.L - b)/a - 1
-       # integer for number of atom sites
-       2 * np.floor(k) + 5
-       self.V = # needs completion!
+        '''
+        # constant for the average -CH=CH- unit length in SI units
+        a = 2.49e-10
+        # convert to atomic units
+        a /= 5.29e-11
+        # constant for the terminal -N moity length in SI units
+        b = 5.69e-10
+        # convert to atomic units
+        b /= 5.29e-11
+        # number of -CH=CH- units
+        k = (self.L - b)/a - 1
+        # integer for number of atom sites
+        m = 2 * np.floor(k) + 5
+        # pre-factor for the potential in atomic units (3.25 eV in the paper
+        # seems a reasonable value)
+        A = 3.25 / 27.211
+        self.V = A * np.cos( 2 * m * np.pi * self.x / self.L)
+        
     
     def derivatives(self):
         """ 
@@ -361,15 +369,14 @@ class pib(Quantum):
 class rigid_rotor(Quantum):
     def __init__(self, args):
         Quantum.__init__(self,args)
+        self.R = 1
+        self.I = self.m * self.R **2
         
-    self.R = 1
-    self.I = self.m * self.R **2
-    
-    ### quantum numbers
-    self.n = np.linspace(-50,50,101)
-    self.cn = np.zeros(len(self.n),dtype=complex)
-    self.t_fac = np.zeros(len(self.n),dtype=complex)
-    self.x = np.linspace(0, np.pi * 2, self.grid_points)
+        ### quantum numbers
+        self.n = np.linspace(-50,50,101)
+        self.cn = np.zeros(len(self.n),dtype=complex)
+        self.t_fac = np.zeros(len(self.n),dtype=complex) 
+        self.x = np.linspace(0, np.pi * 2, self.grid_points)
     
 
     def eigenfunction(self, n):
