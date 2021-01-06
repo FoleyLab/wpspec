@@ -17,7 +17,7 @@ class Quantum:
         if 'box_length' in args:
             self.L = args['box_length']
         else:
-            self.L = 5.0
+            self.L = 10.0
         if 'time_step' in args:
             self.dt = args['time_step']
         else:
@@ -67,36 +67,46 @@ class Quantum:
             self.Psi = np.sqrt(2/self.L) * np.sin((np.pi * self.x/self.L), dtype=complex)
             self.K = np.exp(-0.5 * (self.k ** 2) * self.dt * 1j)
             self.R = np.exp(-0.5 * self.V * self.dt * 1j)
-
-
-
-
+            
+            
+        
+        ''' some constants and parameters in atomic units '''
+        # reduced planck's constant
         self.hbar = 1
+        # electron mass
         self.m = 1
+        # reduced mass for PIR system or a very light harmonic oscillator!
         self.mu = 1
+        # very small spring constant!
         self.k = 1
+        # position-space spread for a gaussian wavepacket
+        self.sigma = self.L / 5
+        # central position value for a gaussian wavepacket
+        self.x0 = self.L / 2
+        # central momentum for a gaussian wavepacket
+        self.k0 = 0.4
+
+        ''' some arrays for finite-difference methods '''
         self.T_matrix = np.zeros((self.grid_points, self.grid_points))
         self.V_matrix = np.zeros((self.grid_points, self.grid_points))
         self.H_matrix = np.zeros((self.grid_points, self.grid_points)) 
         
-        # arrays for basis set expansion
+        ''' arrays for basis set expansion '''
         self.cn = np.zeros(100)
         self.n = np.linspace(1,100,100)
         self.phi = np.zeros((len(self.x), 100))
         self.t_fac = np.zeros(100, dtype=complex)
         
+        ''' some parameters for model potentials '''
         self.morse_D = 1
         self.morse_a = 1.5
         self.morse_re = 0
+        self.periodic_A = 3.25 / 27.211
     
-
         
-    def build_operator(self):
-        self.R = np.exp(-0.5 * self.V * self.dt * 1j)
-        
+    ''' methods for model potentials that might be relevant for various systems '''
     def morse_potential(self):
-        ''' method to generate the Morse potential and store to self.V
-        '''
+        ''' method to generate the Morse potential and store to self.V '''
         self.V = self.morse_D * (1 - np.exp(-self.morse_a * (self.x - self.morse_a))) ** 2
         
     def periodic_potential(self):
@@ -131,9 +141,14 @@ class Quantum:
         m = 2 * np.floor(k) + 5
         # pre-factor for the potential in atomic units (3.25 eV in the paper
         # seems a reasonable value)
-        A = 3.25 / 27.211
-        self.V = A * np.cos( 2 * m * np.pi * self.x / self.L)
+        self.V = self.A * np.cos( 2 * m * np.pi * self.x / self.L)
         
+    ''' methods for numerical methods, including split operator and
+        finite difference method '''
+        
+            
+    def build_operator(self):
+        self.R = np.exp(-0.5 * self.V * self.dt * 1j)
     
     def derivatives(self):
         """ 
@@ -225,6 +240,9 @@ class Quantum:
         self.H_matrix = self.T_matrix + self.V_matrix
         return 1
     
+    ''' methods related to superpositions and Fourier analysis of
+        wavefunctions '''
+    
     ### use rectangle rule to integrate a function!
     def integrate(self, f_of_x):
         ''' rectangle rule integral method '''
@@ -253,6 +271,26 @@ class Quantum:
         for i in range(1, len(self.n)):
             self.Psi += self.cn[i] * self.phi[:,i] * self.t_fac[i]
         return 1
+    
+    ''' methods related to initial quantum states that may be 
+        broadly applicable '''
+    def gaussian_wavepacket(self):
+        ''' method to compute a Gaussian wavepacket defined by 
+            a central position value x0 with width sigma 
+            and a central momentum value k0 and store it to 
+            self.Psi
+        '''
+        ### need sqrt of -1!
+        ci = 0+1j
+        ### T1 will be the prefactor that is 1/(sigma * sqrt(2 * pi))
+        T1 = 1/(self.sigma * np.sqrt(2 * np.pi))
+        ### T2 will be the Gaussian function, exp(-0.5 * ((x-x0)/sigma)^2)
+        T2 = np.exp(-0.5 * ((self.x-self.x0)/self.sigma)**2)
+        ### T3 will be the complex exponential (aka the plane wave!)
+        T3 = np.exp(ci * self.k0 * self.x)
+        ### return the product of T1 * T2 * T3
+        self.Psi = T1 * T2 * T3
+
     
 
 
