@@ -290,6 +290,19 @@ class Quantum:
         T3 = np.exp(ci * self.k0 * self.x)
         ### return the product of T1 * T2 * T3
         self.Psi = T1 * T2 * T3
+        
+    def position_eigenfunction(self, x_val):
+        ''' method to approximate a position eigenfunction 
+            at x=x_val with a very small width = self.L / 100.
+            Note that the <p> = 0 for this model, but the 
+            momentum uncertainty will be quite large particularly
+            if the box is very small '''
+        ci = 0+1j
+        sig = self.L / 100
+        T1 = 1/(sig * np.sqrt(2 * np.pi))
+        T2 = np.exp(-0.5 * ((self.x-x_val)/sig)**2)
+        self.Psi = T1 * T2
+        
 
     
 
