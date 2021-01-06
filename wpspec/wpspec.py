@@ -92,10 +92,10 @@ class Quantum:
         self.H_matrix = np.zeros((self.grid_points, self.grid_points)) 
         
         ''' arrays for basis set expansion '''
-        self.cn = np.zeros(100)
-        self.n = np.linspace(1,100,100)
-        self.phi = np.zeros((len(self.x), 100))
-        self.t_fac = np.zeros(100, dtype=complex)
+        self.cn = np.zeros(300)
+        self.n = np.linspace(1,300,300)
+        self.phi = np.zeros((len(self.x), 300))
+        self.t_fac = np.zeros(300, dtype=complex)
         
         ''' some parameters for model potentials '''
         self.morse_D = 1
