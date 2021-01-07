@@ -39,6 +39,10 @@ class Quantum:
             self.wfc_offset = args['wfc_offset']
         else:
             self.wfc_offset = 0.
+        if 'basis_functions' in args:
+            self.n_basis_functions = args['basis_functions']
+        else:
+            self.n_basis_functions = 100
         
 
         if self.system == 'harmonic':
@@ -92,10 +96,10 @@ class Quantum:
         self.H_matrix = np.zeros((self.grid_points, self.grid_points)) 
         
         ''' arrays for basis set expansion '''
-        self.cn = np.zeros(300)
-        self.n = np.linspace(1,300,300)
-        self.phi = np.zeros((len(self.x), 300))
-        self.t_fac = np.zeros(300, dtype=complex)
+        self.cn = np.zeros(self.n_basis_functions, dtype=complex)
+        self.n = np.linspace(1,self.n_basis_functions,self.n_basis_functions)
+        self.phi = np.zeros((len(self.x), self.n_basis_functions),dtype=complex)
+        self.t_fac = np.zeros(self.n_basis_functions, dtype=complex)
         
         ''' some parameters for model potentials '''
         self.morse_D = 1
@@ -297,11 +301,10 @@ class Quantum:
             Note that the <p> = 0 for this model, but the 
             momentum uncertainty will be quite large particularly
             if the box is very small '''
-        ci = 0+1j
         sig = self.L / 100
         T1 = 1/(sig * np.sqrt(2 * np.pi))
         T2 = np.exp(-0.5 * ((self.x-x_val)/sig)**2)
-        self.Psi = T1 * T2
+        self.Psi = T1 * T2 
         
 
     
@@ -415,7 +418,36 @@ class pib(Quantum):
         for i in range(0,len(self.n)):
             self.phi[:,i] = self.eigenfunction(self.n[i])
             self.cn[i] = self.compute_coefficient(self.phi[:,i])
-        
+            
+    def stern_gerlach_pib(self,time):
+        ''' simulates the Stern-Gerlach experiment for a particle in a box
+            system initialized as a Gaussian wavepacket that then undergoes
+            position measurement and energy measurement '''
+        # free evolution at first!
+        if time<200:
+            self.time_factor(time)
+            self.expand_wavefunction_t()
+        # measure position!
+        elif time == 200:
+            print("Measuring position!")
+            # get probability density 
+            P = np.real(np.conj(self.Psi) * self.Psi)
+            # normalize the probability density
+            norm = np.sum(P)
+            P_norm = P / norm
+            
+            # get random position consistent with probability density
+            p0 = np.random.choice(self.x, 1, p=P_norm)
+            # collapose to that random position
+            self.position_eigenfunction(p0)
+            self.expand_pib()
+            self.time_factor(time - 200)
+            self.expand_wavefunction_t()
+        else:
+            self.time_factor(time - 200)
+            self.expand_wavefunction_t()
+    
+
     
 class rigid_rotor(Quantum):
     def __init__(self, args):
