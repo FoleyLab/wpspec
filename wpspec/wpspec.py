@@ -440,13 +440,30 @@ class pib(Quantum):
             p0 = np.random.choice(self.x, 1, p=P_norm)
             # collapose to that random position
             self.position_eigenfunction(p0)
+            # determine coefficients for superposition 
+            # of particle-in-a-box energy eigenfunctions 
+            # for this position eigenfunction
             self.expand_pib()
             self.time_factor(time - 200)
             self.expand_wavefunction_t()
-        else:
+        elif time < 300:
             self.time_factor(time - 200)
             self.expand_wavefunction_t()
-    
+        elif time == 300:
+            pn = np.real( np.conj(self.cn) * self.cn )
+            norm = np.sum(pn)
+            pn_norm = pn / norm 
+            nval = np.random.choice(self.n, 1, p=pn_norm)
+            self.cn = np.zeros(len(self.cn),dtype=complex)
+            self.cn[int(nval[0])-1] = 1+0j
+            self.time_factor(time - 300)
+            self.expand_wavefunction_t()
+        else:
+            self.time_factor(time-300)
+            self.expand_wavefunction_t()
+            
+
+
 
     
 class rigid_rotor(Quantum):
