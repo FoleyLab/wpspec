@@ -106,6 +106,17 @@ class Quantum:
         self.morse_a = 1.5
         self.morse_re = 0
         self.periodic_A = 3.25 / 27.211
+        
+        ''' some parameters for the Stern-Gerlach simulation stages '''
+        # default number of time-steps for the Stern-Gerlach simulation
+        self.simulation_time_steps = 500
+        # default time increment for the Stern-Gerlach simulation
+        self.sg_dt = 0.5
+        # default time at which first measurement is made
+        self.first_measurement_time = np.floor( self.simulation_time_steps / 3 )
+        # default time at which second measurement is made
+        self.second_measurement_time = np.floor ( 2 * self.simulation_time_steps / 3 )
+        
     
         
     ''' methods for model potentials that might be relevant for various systems '''
@@ -397,7 +408,7 @@ class pib(Quantum):
         return E
     
     def time_factor(self, time_step):
-        t = time_step * self.dt
+        t = time_step * self.sg_dt
         ci = 0+1j
         En = self.eigenvalue(self.n)
         self.t_fac = np.exp(-ci*En*t) 
@@ -424,11 +435,11 @@ class pib(Quantum):
             system initialized as a Gaussian wavepacket that then undergoes
             position measurement and energy measurement '''
         # free evolution at first!
-        if time<200:
+        if time<self.first_measurement_time:
             self.time_factor(time)
             self.expand_wavefunction_t()
         # measure position!
-        elif time == 200:
+        elif time == self.first_measurement_time:
             print("Measuring position!")
             # get probability density 
             P = np.real(np.conj(self.Psi) * self.Psi)
@@ -444,23 +455,24 @@ class pib(Quantum):
             # of particle-in-a-box energy eigenfunctions 
             # for this position eigenfunction
             self.expand_pib()
-            self.time_factor(time - 200)
+            self.time_factor(time - self.first_measurement_time)
             self.expand_wavefunction_t()
-        elif time < 300:
-            self.time_factor(time - 200)
+        elif time < self.second_measurement_time:
+            self.time_factor(time - self.first_measurement_time)
             self.expand_wavefunction_t()
-        elif time == 300:
+        elif time == self.second_measurement_time:
             pn = np.real( np.conj(self.cn) * self.cn )
             norm = np.sum(pn)
             pn_norm = pn / norm 
             nval = np.random.choice(self.n, 1, p=pn_norm)
             self.cn = np.zeros(len(self.cn),dtype=complex)
             self.cn[int(nval[0])-1] = 1+0j
-            self.time_factor(time - 300)
+            self.time_factor(time - self.second_measurement_time)
             self.expand_wavefunction_t()
         else:
-            self.time_factor(time-300)
+            self.time_factor(time-self.second_measurement_time)
             self.expand_wavefunction_t()
+            
             
 
 
