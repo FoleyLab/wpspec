@@ -111,7 +111,7 @@ class Quantum:
         # default number of time-steps for the Stern-Gerlach simulation
         self.simulation_time_steps = 500
         # default time increment for the Stern-Gerlach simulation
-        self.sg_dt = 0.5
+        self.sg_dt = 10.0
         # default time at which first measurement is made
         self.first_measurement_time = np.floor( self.simulation_time_steps / 3 )
         # default time at which second measurement is made
